@@ -52,17 +52,24 @@ npm run build
 
 ## Deployment
 
+See [guide.md](guide.md) for detailed deployment instructions.
+
+### Quick Deployment
+
 This project is configured for easy deployment on Vercel:
 
 1. Push your code to a GitHub repository
 2. Connect your repository to Vercel
 3. Vercel will automatically detect React configuration and deploy
 
-Alternatively, you can deploy from the command line:
+From the command line:
 
 ```bash
 # Install Vercel CLI
 npm install -g vercel
+
+# Login to Vercel
+vercel login
 
 # Deploy to preview
 vercel
@@ -71,32 +78,19 @@ vercel
 vercel --prod
 ```
 
-## Subgraph Deployment
+### Subgraph
 
-The subgraph for indexing Seaport trades is located in the `/subgraph` directory.
-
-1. Prepare the subgraph:
-```bash
-cd subgraph
-npm install
+The subgraph is already deployed to The Graph Studio at:
+```
+https://api.studio.thegraph.com/query/88157/jpegpulse/v0.1.0
 ```
 
-2. Generate code:
-```bash
-npm run codegen
+You can view the subgraph dashboard at:
+```
+https://thegraph.com/studio/subgraph/jpegpulse/
 ```
 
-3. Build the subgraph:
-```bash
-npm run build
-```
-
-4. Deploy to The Graph Studio:
-```bash
-npm run deploy
-```
-
-5. Update the subgraph endpoint in `src/apollo/client.js`
+For updating the subgraph, follow the instructions in [guide.md](guide.md).
 
 ## License
 

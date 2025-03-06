@@ -1,4 +1,6 @@
 specVersion: 0.0.5
+description: JPEG Pulse - NFT Analytics Dashboard for Berachain
+repository: https://github.com/ooohminh/jpegpulse
 schema:
   file: ./schema.graphql
 dataSources:
@@ -24,6 +26,6 @@ dataSources:
         - name: ERC721
           file: ./abis/ERC721.json
       eventHandlers:
-        - event: OrderFulfilled(bytes32,address,address,address,(uint8,address,uint256,uint256)[],(uint8,address,uint256,uint256,address)[])
+        - event: OrderFulfilled(bytes32,indexed address,indexed address,address,(uint8,address,uint256,uint256)[],(uint8,address,uint256,uint256,address)[])
           handler: handleOrderFulfilled
       file: ./src/mapping.ts

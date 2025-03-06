@@ -5,10 +5,10 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --studio berachain-nft",
-    "create-local": "graph create --node http://localhost:8020/ berachain-nft",
-    "remove-local": "graph remove --node http://localhost:8020/ berachain-nft",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 berachain-nft"
+    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ jpegpulse",
+    "create-local": "graph create --node http://localhost:8020/ jpegpulse",
+    "remove-local": "graph remove --node http://localhost:8020/ jpegpulse",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 jpegpulse"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "^0.68.0",

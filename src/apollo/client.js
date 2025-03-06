@@ -2,8 +2,7 @@ import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, concat } from '@apol
 
 // Create an HTTP link
 const httpLink = new HttpLink({
-  // Replace with the actual subgraph endpoint when deployed
-  uri: 'https://api.studio.thegraph.com/query/12345/berachain-nft/version/latest',
+  uri: process.env.REACT_APP_GRAPHQL_ENDPOINT || 'https://api.studio.thegraph.com/query/88157/jpegpulse/v0.1.0',
 });
 
 // Middleware to handle errors and other operations
