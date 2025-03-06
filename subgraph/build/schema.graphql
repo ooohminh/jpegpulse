@@ -1,0 +1,31 @@
+type Trade @entity {
+  id: ID!
+  collection: String!
+  tokenId: BigInt!
+  price: BigDecimal!
+  offerer: Bytes!
+  recipient: Bytes!
+  timestamp: BigInt!
+}
+
+type Collection @entity {
+  id: ID! # collection address
+  name: String
+  totalVolume: BigDecimal!
+  totalTrades: BigInt!
+  lastTradedAt: BigInt
+}
+
+type Trader @entity {
+  id: ID! # trader address
+  totalVolume: BigDecimal!
+  totalTrades: BigInt!
+  lastTradeAt: BigInt
+}
+
+type DailyStat @entity {
+  id: ID! # date in YYYY-MM-DD format
+  volume: BigDecimal!
+  trades: BigInt!
+  uniqueTraders: BigInt!
+}
