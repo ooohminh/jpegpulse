@@ -1,52 +1,131 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery } from '@apollo/client';
+import { GET_RECENT_TRADES, GET_LIVE_TRADES } from './apollo/queries';
 
 function SeaportDashboard() {
-  // Mock data for stats cards - will be replaced with real data in later steps
-  const stats = {
+  // Filter state
+  const [collectionFilter, setCollectionFilter] = useState('');
+  const [traderFilter, setTraderFilter] = useState(null);
+  
+  // Stats state - will be calculated from query data in a real implementation
+  const [stats, setStats] = useState({
     volume: '1,500 $BERA',
     trades: 45,
     traders: 28,
     avgPrice: '33.3 $BERA'
-  };
+  });
   
   // Live updates panel state
   const [showLiveUpdates, setShowLiveUpdates] = useState(true);
-  const [liveUpdates, setLiveUpdates] = useState([
-    { id: '123', collection: 'Bera Bees', price: '50 $BERA', timestamp: '14:27', tokenId: '1234' },
-    { id: '124', collection: 'HoneyCast', price: '75 $BERA', timestamp: '14:20', tokenId: '5678' },
-    { id: '125', collection: 'Berachain Pandas', price: '120 $BERA', timestamp: '14:15', tokenId: '9012' },
-  ]);
+  const [liveUpdates, setLiveUpdates] = useState([]);
+  const [lastTimestamp, setLastTimestamp] = useState(
+    Math.floor(Date.now() / 1000).toString() // Current time in seconds
+  );
   
-  // Mock live updates polling
+  // Query for recent trades (static data)
+  const { loading: loadingTrades, error: tradesError, data: tradesData } = useQuery(
+    GET_RECENT_TRADES,
+    {
+      variables: {
+        collection: collectionFilter,
+        trader: traderFilter,
+        orderBy: "timestamp",
+        orderDirection: "desc",
+        skip: 0,
+        first: 10
+      },
+      fetchPolicy: 'network-only',
+      nextFetchPolicy: 'cache-first',
+    }
+  );
+  
+  // Query for live trades updates with polling
+  const { loading: loadingLive, error: liveError, data: liveData } = useQuery(
+    GET_LIVE_TRADES,
+    {
+      variables: {
+        lastTimestamp,
+        collection: collectionFilter,
+        trader: traderFilter
+      },
+      pollInterval: 5000, // Poll every 5 seconds
+      fetchPolicy: 'network-only',
+      nextFetchPolicy: 'cache-first',
+    }
+  );
+  
+  // Update liveUpdates state when new live data comes in
   useEffect(() => {
-    // Function to simulate new trades coming in
-    const updateLiveTrades = () => {
-      const newTrade = {
-        id: Math.floor(Math.random() * 1000).toString(),
-        collection: ['Bera Bees', 'HoneyCast', 'Berachain Pandas', 'Honey Jar', 'Bera Knights'][Math.floor(Math.random() * 5)],
-        price: `${Math.floor(Math.random() * 150 + 20)} $BERA`,
-        timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        tokenId: Math.floor(Math.random() * 10000).toString()
-      };
+    if (liveData && liveData.trades && liveData.trades.length > 0) {
+      // Find the most recent timestamp
+      const newLastTimestamp = liveData.trades.reduce(
+        (maxTs, trade) => Math.max(maxTs, parseInt(trade.timestamp)),
+        parseInt(lastTimestamp)
+      ).toString();
       
+      // Update the lastTimestamp for the next polling cycle
+      if (newLastTimestamp > lastTimestamp) {
+        setLastTimestamp(newLastTimestamp);
+      }
+      
+      // Format the new trades
+      const newTrades = liveData.trades.map(trade => ({
+        id: trade.id,
+        collection: trade.collection,
+        price: `${parseFloat(trade.price).toFixed(2)} $BERA`,
+        timestamp: new Date(parseInt(trade.timestamp) * 1000).toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit'
+        }),
+        tokenId: trade.tokenId,
+        offerer: trade.offerer,
+        recipient: trade.recipient
+      }));
+      
+      // Add new trades to the beginning of the list
       setLiveUpdates(prev => {
-        const updated = [newTrade, ...prev];
-        // Keep only 10 most recent trades
-        return updated.slice(0, 10);
+        const updatedTrades = [...newTrades, ...prev];
+        // Keep only the 10 most recent trades
+        return updatedTrades.slice(0, 10);
       });
-    };
-    
-    // Set up interval to poll for new trades every 5 seconds
-    const interval = setInterval(updateLiveTrades, 5000);
-    
-    // Clean up interval on component unmount
-    return () => clearInterval(interval);
-  }, []);
+    }
+  }, [liveData, lastTimestamp]);
+  
+  // Initialize liveUpdates with static data on first load
+  useEffect(() => {
+    if (tradesData && tradesData.trades && liveUpdates.length === 0) {
+      const initialTrades = tradesData.trades.map(trade => ({
+        id: trade.id,
+        collection: trade.collection,
+        price: `${parseFloat(trade.price).toFixed(2)} $BERA`,
+        timestamp: new Date(parseInt(trade.timestamp) * 1000).toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit'
+        }),
+        tokenId: trade.tokenId,
+        offerer: trade.offerer,
+        recipient: trade.recipient
+      }));
+      
+      setLiveUpdates(initialTrades);
+    }
+  }, [tradesData, liveUpdates.length]);
   
   // Toggle live updates panel
   const toggleLiveUpdates = () => {
     setShowLiveUpdates(!showLiveUpdates);
   };
+  
+  // Show mock data when queries are loading or errored
+  useEffect(() => {
+    if ((loadingTrades || tradesError) && liveUpdates.length === 0) {
+      setLiveUpdates([
+        { id: '123', collection: 'Bera Bees', price: '50 $BERA', timestamp: '14:27', tokenId: '1234' },
+        { id: '124', collection: 'HoneyCast', price: '75 $BERA', timestamp: '14:20', tokenId: '5678' },
+        { id: '125', collection: 'Berachain Pandas', price: '120 $BERA', timestamp: '14:15', tokenId: '9012' },
+      ]);
+    }
+  }, [loadingTrades, tradesError, liveUpdates.length]);
 
   return (
     <div className="p-4">
@@ -122,6 +201,23 @@ function SeaportDashboard() {
           {showLiveUpdates && (
             <div className="live-updates-panel bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-b-md shadow-md p-4 max-h-60 overflow-y-auto">
               <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-white">Recent Trades</h3>
+              
+              {/* Loading indicator */}
+              {loadingLive && (
+                <div className="flex justify-center items-center py-2">
+                  <div className="animate-spin h-5 w-5 text-blue-500 rounded-full border-2 border-t-transparent border-blue-500"></div>
+                  <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">Polling for new trades...</span>
+                </div>
+              )}
+              
+              {/* Error display */}
+              {liveError && (
+                <div className="text-center text-red-500 dark:text-red-400 py-2">
+                  Error loading live updates. Retrying...
+                </div>
+              )}
+              
+              {/* Trades list */}
               <div className="space-y-2">
                 {liveUpdates.map(trade => (
                   <div key={trade.id} className="trade-item p-2 border-b border-gray-100 dark:border-gray-700 text-sm">
