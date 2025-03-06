@@ -169,14 +169,14 @@ function SeaportDashboard() {
     }
   );
 
-  // Query for collections
+  // Query for collections - fetch all collections (1000 should be enough for now)
   const { loading: loadingCollections, error: collectionsError, data: collectionsData } = useQuery(
     GET_COLLECTIONS,
     {
       variables: {
         orderBy: "totalVolume",
         orderDirection: "desc",
-        first: 5
+        first: 1000
       },
       fetchPolicy: 'network-only',
       nextFetchPolicy: 'cache-first',
@@ -327,21 +327,26 @@ function SeaportDashboard() {
     }
   }, [loadingTrades, tradesError, liveUpdates.length]);
   
-  // Top collections bar chart data
+  // Top collections bar chart data - show top 10 only for the chart
   const topCollectionsChartData = {
-    labels: collectionsData ? collectionsData.collections.map(collection => 
+    labels: collectionsData ? collectionsData.collections.slice(0, 10).map(collection => 
       collection.name || collection.id.substring(0, 6) + '...' + collection.id.substring(collection.id.length - 4)
     ) : [],
     datasets: [
       {
         label: 'Volume ($BERA)',
-        data: collectionsData ? collectionsData.collections.map(collection => parseFloat(collection.totalVolume)) : [],
+        data: collectionsData ? collectionsData.collections.slice(0, 10).map(collection => parseFloat(collection.totalVolume)) : [],
         backgroundColor: [
           'rgba(255, 99, 132, 0.6)',
           'rgba(54, 162, 235, 0.6)',
           'rgba(255, 206, 86, 0.6)',
           'rgba(75, 192, 192, 0.6)',
           'rgba(153, 102, 255, 0.6)',
+          'rgba(255, 159, 64, 0.6)',
+          'rgba(201, 203, 207, 0.6)',
+          'rgba(130, 215, 172, 0.6)',
+          'rgba(181, 147, 216, 0.6)',
+          'rgba(250, 176, 170, 0.6)',
         ],
         borderColor: [
           'rgba(255, 99, 132, 1)',
@@ -349,6 +354,11 @@ function SeaportDashboard() {
           'rgba(255, 206, 86, 1)',
           'rgba(75, 192, 192, 1)',
           'rgba(153, 102, 255, 1)',
+          'rgba(255, 159, 64, 1)',
+          'rgba(201, 203, 207, 1)',
+          'rgba(130, 215, 172, 1)',
+          'rgba(181, 147, 216, 1)',
+          'rgba(250, 176, 170, 1)',
         ],
         borderWidth: 1,
       },
@@ -365,7 +375,7 @@ function SeaportDashboard() {
       },
       title: {
         display: true,
-        text: 'Top 5 NFT Collections by Volume',
+        text: 'Top 10 NFT Collections by Volume',
       },
     },
   };
