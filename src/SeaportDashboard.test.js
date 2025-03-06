@@ -1,6 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import SeaportDashboard from './SeaportDashboard';
 
+// Mock the Chart.js components since they use canvas which is not available in jsdom
+jest.mock('react-chartjs-2', () => ({
+  Line: () => <div data-testid="mocked-line-chart" />
+}));
+
 test('renders Seaport NFT Activity header', () => {
   render(<SeaportDashboard />);
   const headerElement = screen.getByText(/Seaport NFT Activity/i);
@@ -43,4 +48,16 @@ test('renders all four stats cards with correct values', () => {
   // Check for subtitle "Last 7 days" that should appear on all cards
   const subtitles = screen.getAllByText(/Last 7 days/i);
   expect(subtitles).toHaveLength(4);
+});
+
+test('renders the volume and trades line chart', () => {
+  render(<SeaportDashboard />);
+  
+  // Check for chart title
+  const chartTitle = screen.getByText(/Volume and Trades \(Last 7 Days\)/i);
+  expect(chartTitle).toBeInTheDocument();
+  
+  // With our mock, we should find the mocked chart component
+  const chartComponent = screen.getByTestId('mocked-line-chart');
+  expect(chartComponent).toBeInTheDocument();
 });

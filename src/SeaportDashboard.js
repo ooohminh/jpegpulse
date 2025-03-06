@@ -1,4 +1,9 @@
 import React from 'react';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, BarElement } from 'chart.js';
+import { Line } from 'react-chartjs-2';
+
+// Register Chart.js components
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 function StatCard({ title, value, subtitle, icon }) {
   return (
@@ -12,6 +17,76 @@ function StatCard({ title, value, subtitle, icon }) {
         <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</h3>
         <p className="text-2xl font-bold text-gray-800 dark:text-white">{value}</p>
         {subtitle && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{subtitle}</p>}
+      </div>
+    </div>
+  );
+}
+
+function LineChart({ title, data, labels }) {
+  // Default to light theme settings
+  let gridColor = 'rgba(0, 0, 0, 0.1)';
+  let textColor = 'rgba(0, 0, 0, 0.7)';
+  
+  // Check if we're in dark mode
+  const isDarkMode = document.documentElement.classList.contains('dark');
+  if (isDarkMode) {
+    gridColor = 'rgba(255, 255, 255, 0.1)';
+    textColor = 'rgba(255, 255, 255, 0.7)';
+  }
+
+  const chartData = {
+    labels,
+    datasets: data,
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          color: textColor,
+        },
+      },
+      title: {
+        display: title ? true : false,
+        text: title,
+        color: textColor,
+      },
+      tooltip: {
+        enabled: true,
+      },
+    },
+    scales: {
+      y: {
+        grid: {
+          color: gridColor,
+        },
+        ticks: {
+          color: textColor,
+        },
+      },
+      x: {
+        grid: {
+          color: gridColor,
+        },
+        ticks: {
+          color: textColor,
+        },
+      },
+    },
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+      <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-white">{title}</h3>
+      <div className="h-64">
+        <Line data={chartData} options={chartOptions} />
       </div>
     </div>
   );
@@ -54,6 +129,25 @@ function SeaportDashboard() {
     }
   ];
 
+  // Mock data for line chart
+  const lineChartLabels = ['Feb 27', 'Feb 28', 'Mar 1', 'Mar 2', 'Mar 3', 'Mar 4', 'Mar 5'];
+  const lineChartData = [
+    {
+      label: 'Volume ($BERA)',
+      data: [120, 190, 300, 250, 220, 400, 220],
+      borderColor: 'rgb(53, 162, 235)',
+      backgroundColor: 'rgba(53, 162, 235, 0.5)',
+      yAxisID: 'y',
+    },
+    {
+      label: 'Trades',
+      data: [4, 7, 12, 9, 6, 8, 5],
+      borderColor: 'rgb(255, 99, 132)',
+      backgroundColor: 'rgba(255, 99, 132, 0.5)',
+      yAxisID: 'y1',
+    },
+  ];
+
   return (
     <div className="p-4">
       <header className="mb-6">
@@ -90,6 +184,15 @@ function SeaportDashboard() {
               icon={card.icon}
             />
           ))}
+        </div>
+        
+        {/* Line Chart - Volume and Trades */}
+        <div className="mb-6">
+          <LineChart 
+            title="Volume and Trades (Last 7 Days)" 
+            data={lineChartData} 
+            labels={lineChartLabels} 
+          />
         </div>
         
         <div className="remaining-content">
