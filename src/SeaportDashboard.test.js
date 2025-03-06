@@ -3,7 +3,8 @@ import SeaportDashboard from './SeaportDashboard';
 
 // Mock the Chart.js components since they use canvas which is not available in jsdom
 jest.mock('react-chartjs-2', () => ({
-  Line: () => <div data-testid="mocked-line-chart" />
+  Line: () => <div data-testid="mocked-line-chart" />,
+  Bar: () => <div data-testid="mocked-bar-chart" />
 }));
 
 test('renders Seaport NFT Activity header', () => {
@@ -59,5 +60,17 @@ test('renders the volume and trades line chart', () => {
   
   // With our mock, we should find the mocked chart component
   const chartComponent = screen.getByTestId('mocked-line-chart');
+  expect(chartComponent).toBeInTheDocument();
+});
+
+test('renders the top collections bar chart', () => {
+  render(<SeaportDashboard />);
+  
+  // Check for chart title
+  const chartTitle = screen.getByText(/Top 5 Collections by Volume/i);
+  expect(chartTitle).toBeInTheDocument();
+  
+  // With our mock, we should find the mocked chart component
+  const chartComponent = screen.getByTestId('mocked-bar-chart');
   expect(chartComponent).toBeInTheDocument();
 });

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, BarElement } from 'chart.js';
-import { Line } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { Line, Bar } from 'react-chartjs-2';
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
@@ -22,7 +22,7 @@ function StatCard({ title, value, subtitle, icon }) {
   );
 }
 
-function LineChart({ title, data, labels }) {
+function getChartThemeColors() {
   // Default to light theme settings
   let gridColor = 'rgba(0, 0, 0, 0.1)';
   let textColor = 'rgba(0, 0, 0, 0.7)';
@@ -33,6 +33,12 @@ function LineChart({ title, data, labels }) {
     gridColor = 'rgba(255, 255, 255, 0.1)';
     textColor = 'rgba(255, 255, 255, 0.7)';
   }
+  
+  return { gridColor, textColor };
+}
+
+function LineChart({ title, data, labels }) {
+  const { gridColor, textColor } = getChartThemeColors();
 
   const chartData = {
     labels,
@@ -87,6 +93,64 @@ function LineChart({ title, data, labels }) {
       <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-white">{title}</h3>
       <div className="h-64">
         <Line data={chartData} options={chartOptions} />
+      </div>
+    </div>
+  );
+}
+
+function BarChart({ title, data, labels, horizontal = false }) {
+  const { gridColor, textColor } = getChartThemeColors();
+
+  const chartData = {
+    labels,
+    datasets: data,
+  };
+
+  const chartOptions = {
+    indexAxis: horizontal ? 'y' : 'x',
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          color: textColor,
+        },
+      },
+      title: {
+        display: title ? true : false,
+        text: title,
+        color: textColor,
+      },
+      tooltip: {
+        enabled: true,
+      },
+    },
+    scales: {
+      y: {
+        grid: {
+          color: gridColor,
+        },
+        ticks: {
+          color: textColor,
+        },
+      },
+      x: {
+        grid: {
+          color: gridColor,
+        },
+        ticks: {
+          color: textColor,
+        },
+      },
+    },
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+      <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-white">{title}</h3>
+      <div className="h-64">
+        <Bar data={chartData} options={chartOptions} />
       </div>
     </div>
   );
@@ -147,6 +211,16 @@ function SeaportDashboard() {
       yAxisID: 'y1',
     },
   ];
+  
+  // Mock data for bar chart
+  const barChartLabels = ['Bera Bees', 'HoneyCast', 'BeraVault', 'BeraFighters', 'MoonBeras'];
+  const barChartData = [
+    {
+      label: 'Volume ($BERA)',
+      data: [700, 520, 380, 250, 150],
+      backgroundColor: 'rgba(53, 162, 235, 0.8)',
+    }
+  ];
 
   return (
     <div className="p-4">
@@ -186,13 +260,26 @@ function SeaportDashboard() {
           ))}
         </div>
         
-        {/* Line Chart - Volume and Trades */}
-        <div className="mb-6">
-          <LineChart 
-            title="Volume and Trades (Last 7 Days)" 
-            data={lineChartData} 
-            labels={lineChartLabels} 
-          />
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Line Chart - Volume and Trades */}
+          <div>
+            <LineChart 
+              title="Volume and Trades (Last 7 Days)" 
+              data={lineChartData} 
+              labels={lineChartLabels} 
+            />
+          </div>
+          
+          {/* Bar Chart - Top Collections */}
+          <div>
+            <BarChart 
+              title="Top 5 Collections by Volume" 
+              data={barChartData} 
+              labels={barChartLabels}
+              horizontal={true}
+            />
+          </div>
         </div>
         
         <div className="remaining-content">
