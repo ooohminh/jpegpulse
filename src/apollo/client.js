@@ -2,7 +2,7 @@ import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, concat } from '@apol
 
 // Create an HTTP link
 const httpLink = new HttpLink({
-  uri: process.env.REACT_APP_GRAPHQL_ENDPOINT || 'https://api.studio.thegraph.com/query/88157/jpegpulse/v0.1.0',
+  uri: process.env.REACT_APP_GRAPHQL_ENDPOINT || 'https://api.studio.thegraph.com/query/88157/jpegpulse/v0.2.0',
 });
 
 // Middleware to handle errors and other operations

@@ -1,4 +1,4 @@
-import { BigInt, BigDecimal, Address, Bytes } from '@graphprotocol/graph-ts';
+import { BigInt, BigDecimal, Address, Bytes, log } from '@graphprotocol/graph-ts';
 import { OrderFulfilled } from '../generated/Seaport/Seaport';
 import { Trade, Collection, Trader, DailyStat } from '../generated/schema';
 import { ERC721 } from '../generated/Seaport/ERC721';
@@ -35,26 +35,48 @@ function getDateId(timestamp: BigInt): string {
 }
 
 export function handleOrderFulfilled(event: OrderFulfilled): void {
-  // Find NFT in the consideration array (what the buyer received)
+  // First check for seller listing fulfillment pattern (NFT in offer, payment in consideration)
   let nftToken: Address | null = null;
   let nftTokenId: BigInt | null = null;
+  let paymentAmount: BigInt = BigInt.fromI32(0);
+  let isOfferFulfillment = false;
   
-  for (let i = 0; i < event.params.consideration.length; i++) {
-    const item = event.params.consideration[i];
+  // Check if NFT is in offer (classic listing fulfillment)
+  for (let i = 0; i < event.params.offer.length; i++) {
+    const item = event.params.offer[i];
     if (item.itemType == ITEM_TYPE_ERC721 || item.itemType == ITEM_TYPE_ERC1155) {
       nftToken = item.token;
       nftTokenId = item.identifier;
+      isOfferFulfillment = true;
       break;
     }
   }
   
-  // Find the payment token in the offer array (what the seller received)
-  let paymentAmount: BigInt = BigInt.fromI32(0);
-  
-  for (let i = 0; i < event.params.offer.length; i++) {
-    const item = event.params.offer[i];
-    if (item.itemType == ITEM_TYPE_NATIVE || item.itemType == ITEM_TYPE_ERC20) {
-      paymentAmount = paymentAmount.plus(item.amount);
+  if (isOfferFulfillment) {
+    // For listing fulfillment, find payment in consideration
+    for (let i = 0; i < event.params.consideration.length; i++) {
+      const item = event.params.consideration[i];
+      if (item.itemType == ITEM_TYPE_NATIVE || item.itemType == ITEM_TYPE_ERC20) {
+        paymentAmount = paymentAmount.plus(item.amount);
+      }
+    }
+  } else {
+    // Otherwise check for buyer offer fulfillment pattern (NFT in consideration, payment in offer)
+    for (let i = 0; i < event.params.consideration.length; i++) {
+      const item = event.params.consideration[i];
+      if (item.itemType == ITEM_TYPE_ERC721 || item.itemType == ITEM_TYPE_ERC1155) {
+        nftToken = item.token;
+        nftTokenId = item.identifier;
+        break;
+      }
+    }
+    
+    // Find payment in offer
+    for (let i = 0; i < event.params.offer.length; i++) {
+      const item = event.params.offer[i];
+      if (item.itemType == ITEM_TYPE_NATIVE || item.itemType == ITEM_TYPE_ERC20) {
+        paymentAmount = paymentAmount.plus(item.amount);
+      }
     }
   }
   
@@ -63,6 +85,18 @@ export function handleOrderFulfilled(event: OrderFulfilled): void {
     const collectionAddress = nftToken.toHexString();
     const offererAddress = event.params.offerer.toHexString();
     const recipientAddress = event.params.recipient.toHexString();
+    
+    // Log transaction details for debugging
+    log.info(
+      'Processing OrderFulfilled: tx: {}, collection: {}, tokenId: {}, amount: {}, pattern: {}', 
+      [
+        event.transaction.hash.toHexString(),
+        collectionAddress,
+        nftTokenId.toString(), 
+        paymentAmount.toString(),
+        isOfferFulfillment ? 'Listing' : 'Offer'
+      ]
+    );
     
     // Create or update Collection entity
     let collection = Collection.load(collectionAddress);

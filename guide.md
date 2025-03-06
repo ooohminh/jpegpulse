@@ -2,16 +2,23 @@
 
 ## 1. Subgraph Deployment Status
 
-The subgraph has been successfully deployed to The Graph Studio. You can access it at:
+The subgraph has been updated to index ALL NFT collections on Berachain mainnet. You can access it at:
 
 ```
 https://thegraph.com/studio/subgraph/jpegpulse/
 ```
 
-### Endpoint URL (successfully configured in Apollo Client):
+### Endpoint URL (configured in Apollo Client):
 ```
-https://api.studio.thegraph.com/query/88157/jpegpulse/v0.1.0
+https://api.studio.thegraph.com/query/88157/jpegpulse/v0.2.0
 ```
+
+### Features of the Updated Subgraph:
+
+- Indexes ALL NFT collections traded through Seaport on Berachain
+- Captures the complete trading history starting from block 100,000
+- Handles both listing fulfillments and offer acceptances
+- Resolves collection names via on-chain contract calls
 
 ### Updating the Subgraph
 
@@ -23,7 +30,8 @@ If you need to update the subgraph in the future:
    cd subgraph
    npm run codegen
    npm run build
-   graph deploy --node https://api.studio.thegraph.com/deploy/ jpegpulse
+   graph auth --studio <YOUR_DEPLOY_KEY>
+   graph deploy --node https://api.studio.thegraph.com/deploy/ --version-label v0.2.1 jpegpulse
    ```
 
 ## 2. Implemented Features
