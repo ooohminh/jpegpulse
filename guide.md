@@ -1,21 +1,21 @@
 # JPEG Pulse Deployment Guide
 
-## 1. Subgraph Deployment
+## 1. Subgraph Deployment Status
 
-The subgraph has been deployed to The Graph Studio. You can access it at:
+The subgraph has been successfully deployed to The Graph Studio. You can access it at:
 
 ```
 https://thegraph.com/studio/subgraph/jpegpulse/
 ```
 
-### Endpoint URL for Apollo Client:
+### Endpoint URL (successfully configured in Apollo Client):
 ```
 https://api.studio.thegraph.com/query/88157/jpegpulse/v0.1.0
 ```
 
 ### Updating the Subgraph
 
-If you need to update the subgraph:
+If you need to update the subgraph in the future:
 
 1. Make your changes to the schema, mappings, or ABIs in the `subgraph` directory
 2. Run the following commands:
@@ -23,29 +23,55 @@ If you need to update the subgraph:
    cd subgraph
    npm run codegen
    npm run build
-   graph deploy --node https://api.studio.thegraph.com/deploy/ --version-label v0.1.1 ooohminh/jpegpulse
+   graph deploy --node https://api.studio.thegraph.com/deploy/ jpegpulse
    ```
 
-## 2. Frontend Deployment to Vercel
+## 2. Implemented Features
+
+We've successfully implemented the following features in the Seaport dashboard:
+
+1. **Real-time Stats**: Volume, Trades, Traders, Average Price - calculated from actual subgraph data
+2. **Interactive Charts**:
+   - Volume and trades line chart showing data over 7 days
+   - Top collections bar chart showing highest volume collections
+3. **Filters**:
+   - Collection filter dropdown with data from the subgraph
+   - Trader address filter that affects all dashboard components
+4. **Sortable, Paginated Trade Table**:
+   - Sort by any column (price, timestamp, collection, etc.)
+   - Page through results with pagination controls
+5. **CSV Export**: Export trades to CSV for offline analysis
+6. **Live Updates Panel**: Real-time trade notifications with 5-second polling
+7. **Tooltips**: Hover tooltips on stats cards for better understanding
+8. **Responsive Design**: Works on both desktop and mobile
+
+All these features are connected to the subgraph and using real data.
+
+## 3. Frontend Deployment Instructions for Vercel
 
 ### One-click Deployment
 
-The easiest way to deploy the frontend is to use Vercel's one-click deployment:
+The preferred way to deploy the frontend:
 
-1. Make sure the Apollo Client configuration in `src/apollo/client.js` points to your subgraph endpoint
-2. Push your changes to GitHub
-3. Import your repository in the Vercel dashboard
-4. Select the appropriate settings (React, build command: `npm run build`)
+1. Go to the Vercel dashboard: https://vercel.com/import
+2. Import your GitHub repository (the one with our latest code)
+3. Configure the project with these settings:
+   - Framework Preset: Create React App
+   - Build Command: `npm run build`
+   - Output Directory: `build`
+4. Add the environment variable:
+   - Name: `REACT_APP_GRAPHQL_ENDPOINT`
+   - Value: `https://api.studio.thegraph.com/query/88157/jpegpulse/v0.1.0`
 5. Click Deploy
 
 ### Manual Deployment with Vercel CLI
 
-If you prefer to deploy from the command line:
+If you prefer deploying from your local machine:
 
 1. Install Vercel CLI: `npm install -g vercel`
 2. Login to Vercel: `vercel login`
-3. Deploy: `vercel`
-4. Follow the prompts to complete the deployment
+3. Deploy: `vercel --prod`
+4. When prompted, set the environment variable as shown above
 
 ## 3. Configuration
 
