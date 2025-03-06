@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import SeaportDashboard from './SeaportDashboard';
+import AllNFTDashboard from './AllNFTDashboard';
 
 function App() {
   return (
@@ -45,14 +46,7 @@ function App() {
               </div>
             } />
             <Route path="/seaport" element={<SeaportDashboard />} />
-            <Route path="/all-nft" element={
-              <div className="p-4 text-center">
-                <h2 className="text-xl font-semibold">All-NFT Dashboard</h2>
-                <p className="text-gray-600 dark:text-gray-400 mt-2">
-                  This dashboard will be implemented in the next step.
-                </p>
-              </div>
-            } />
+            <Route path="/all-nft" element={<AllNFTDashboard />} />
           </Routes>
         </main>
       </div>
