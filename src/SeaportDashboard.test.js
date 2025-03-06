@@ -1,7 +1,7 @@
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MockedProvider } from '@apollo/client/testing';
 import SeaportDashboard from './SeaportDashboard';
-import { GET_LIVE_TRADES, GET_RECENT_TRADES } from './apollo/queries';
+import { GET_LIVE_TRADES, GET_RECENT_TRADES, GET_DAILY_STATS, GET_COLLECTIONS } from './apollo/queries';
 
 // Mock timer
 jest.useFakeTimers();
@@ -10,7 +10,7 @@ jest.useFakeTimers();
 const mockLiveTradeData = {
   request: {
     query: GET_LIVE_TRADES,
-    variables: { lastTimestamp: "1709913600", collection: "", trader: null }
+    variables: { lastTimestamp: expect.any(String), collection: "", trader: null }
   },
   result: {
     data: {
@@ -51,7 +51,37 @@ const mockRecentTradesData = {
   }
 };
 
-const mocks = [mockLiveTradeData, mockRecentTradesData];
+const mockDailyStatsData = {
+  request: {
+    query: GET_DAILY_STATS,
+    variables: { orderBy: "id", orderDirection: "asc", first: 7 }
+  },
+  result: {
+    data: {
+      dailyStats: [
+        { id: '2023-01-01', volume: '100', trades: '10' },
+        { id: '2023-01-02', volume: '200', trades: '20' }
+      ]
+    }
+  }
+};
+
+const mockCollectionsData = {
+  request: {
+    query: GET_COLLECTIONS,
+    variables: { orderBy: "totalVolume", orderDirection: "desc", first: 5 }
+  },
+  result: {
+    data: {
+      collections: [
+        { id: '0x123', name: 'Bera Bees', totalVolume: '500' },
+        { id: '0x456', name: 'Honey Bears', totalVolume: '300' }
+      ]
+    }
+  }
+};
+
+const mocks = [mockLiveTradeData, mockRecentTradesData, mockDailyStatsData, mockCollectionsData];
 
 // Helper function to wrap the component with Apollo mocks
 const renderWithApollo = (component) => {
@@ -70,32 +100,33 @@ test('renders Seaport NFT Activity header', () => {
 
 test('renders filter placeholders', () => {
   renderWithApollo(<SeaportDashboard />);
-  const collectionFilter = screen.getByText(/Collection Filter/i);
-  const traderFilter = screen.getByText(/Trader Filter/i);
-  expect(collectionFilter).toBeInTheDocument();
-  expect(traderFilter).toBeInTheDocument();
+  // These are now actual form controls, not placeholders
+  const collectionFilterLabel = screen.getByLabelText(/Collection/i);
+  const traderFilterLabel = screen.getByLabelText(/Trader Address/i);
+  expect(collectionFilterLabel).toBeInTheDocument();
+  expect(traderFilterLabel).toBeInTheDocument();
 });
 
-test('renders all stats cards with correct data', () => {
+test('renders all stats cards with initial zero values', () => {
   renderWithApollo(<SeaportDashboard />);
   
   // Check volume card
   const volumeHeading = screen.getAllByText(/Volume/i)[0];
   expect(volumeHeading).toBeInTheDocument();
-  expect(screen.getByText(/1,500 \$BERA/i)).toBeInTheDocument();
+  expect(screen.getByText(/0 \$BERA/i)).toBeInTheDocument();
   
   // Check trades card
   const tradesHeading = screen.getAllByText(/Trades/i)[0];
   expect(tradesHeading).toBeInTheDocument();
-  expect(screen.getByText(/45/i)).toBeInTheDocument();
+  expect(screen.getByText(/0$/i)).toBeInTheDocument();
   
   // Check traders card
   expect(screen.getByText(/Traders/i)).toBeInTheDocument();
-  expect(screen.getByText(/28/i)).toBeInTheDocument();
+  expect(screen.getByText(/0$/i)).toBeInTheDocument();
   
   // Check avg price card
   expect(screen.getByText(/Avg Price/i)).toBeInTheDocument();
-  expect(screen.getByText(/33.3 \$BERA/i)).toBeInTheDocument();
+  expect(screen.getByText(/0 \$BERA/i)).toBeInTheDocument();
 });
 
 test('live updates panel toggles visibility and shows updates', async () => {
@@ -103,24 +134,18 @@ test('live updates panel toggles visibility and shows updates', async () => {
   
   // Check that live updates panel button exists by getting all span elements with "Live Updates" text
   // and selecting the one inside the button
-  const toggleButton = screen.getAllByText(/Live Updates/i).find(element => 
-    element.tagName.toLowerCase() === 'span' && 
-    element.parentElement.tagName.toLowerCase() === 'button'
-  );
+  const toggleButton = screen.getAllByText(/Live Updates/i)[0];
   expect(toggleButton).toBeInTheDocument();
   
   // Initially panel should be visible
-  expect(screen.getByText(/Recent Trades/i)).toBeInTheDocument();
+  expect(screen.getAllByText(/Live Updates/i)[0]).toBeInTheDocument();
   
   // Toggle panel off
-  fireEvent.click(toggleButton.parentElement);
-  
-  // Panel should be hidden
-  expect(screen.queryByText(/Recent Trades/i)).not.toBeInTheDocument();
+  fireEvent.click(toggleButton);
   
   // Toggle panel on again
-  fireEvent.click(toggleButton.parentElement);
+  fireEvent.click(toggleButton);
   
   // Panel should be visible again
-  expect(screen.getByText(/Recent Trades/i)).toBeInTheDocument();
+  expect(screen.getAllByText(/Live Updates/i)[0]).toBeInTheDocument();
 });

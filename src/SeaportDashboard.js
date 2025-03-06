@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_RECENT_TRADES, GET_LIVE_TRADES, GET_DAILY_STATS, GET_COLLECTIONS } from './apollo/queries';
 import { Line, Bar } from 'react-chartjs-2';
@@ -103,6 +103,23 @@ function SeaportDashboard() {
     avgPrice: '0 $BERA'
   });
   
+  // Query for recent trades (static data)
+  const { loading: loadingTrades, error: tradesError, data: tradesData } = useQuery(
+    GET_RECENT_TRADES,
+    {
+      variables: {
+        collection: collectionFilter,
+        trader: traderFilter,
+        orderBy: sortField,
+        orderDirection: sortDirection,
+        skip: currentPage * pageSize,
+        first: pageSize
+      },
+      fetchPolicy: 'network-only',
+      nextFetchPolicy: 'cache-first',
+    }
+  );
+  
   // Calculate stats from query data
   useEffect(() => {
     if (tradesData && tradesData.trades) {
@@ -136,23 +153,6 @@ function SeaportDashboard() {
   const [liveUpdates, setLiveUpdates] = useState([]);
   const [lastTimestamp, setLastTimestamp] = useState(
     Math.floor(Date.now() / 1000).toString() // Current time in seconds
-  );
-  
-  // Query for recent trades (static data)
-  const { loading: loadingTrades, error: tradesError, data: tradesData } = useQuery(
-    GET_RECENT_TRADES,
-    {
-      variables: {
-        collection: collectionFilter,
-        trader: traderFilter,
-        orderBy: sortField,
-        orderDirection: sortDirection,
-        skip: currentPage * pageSize,
-        first: pageSize
-      },
-      fetchPolicy: 'network-only',
-      nextFetchPolicy: 'cache-first',
-    }
   );
   
   // Query for daily stats
